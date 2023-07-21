@@ -1,0 +1,83 @@
+create lvm using multiple disk
+==============================
+
+fdisk -l
+parted /dev/sde
+mklabel gpt
+mkpart primary
+ext4
+Start? 1
+End? 1024G
+set 1 lvm on
+quit
+
+parted /dev/sdf
+mklabel gpt
+mkpart primary
+ext4
+Start? 1
+End? 1024G
+set 1 lvm on
+quit
+
+pvcreate /dev/sde1 /dev/sdf1
+vgcreate vg_myntra_lvm_new /dev/sde1 /dev/sdf1                  
+lvcreate --name myntra_vol_new -l 100%FREE vg_myntra_lvm_new    
+mkfs.ext4 /dev/vg_myntra_lvm_new/myntra_vol_new                   
+blkid										
+fstab entry
+UUID=2461cc20-1501-47c1-89f2-662809a6c3ef /myntra      ext4  defaults,nofail,barrier=0 0 0
+
+
+single disk
+===========
+fdisk -l
+parted /dev/xvdf
+mklabel gpt
+mkpart primary
+ext4
+Start? 1
+End? 1024G
+set 1 lvm on
+quit
+
+pvcreate /dev/xvdf1
+vgcreate vg_linux /dev/xvdf1  
+
+lvcreate --name lv_linux -l 100%FREE vg_linux
+               
+mkfs.ext4 /dev/vg_linux/lv_linux                
+blkid										
+fstab entry
+UUID=2461cc20-1501-47c1-89f2-662809a6c3ef /myntra      ext4  defaults,nofail,barrier=0 0 0
+
+
+add disk in existing lvm
+=============================
+
+*reference link https://tylersguides.com/guides/how-to-add-a-disk-to-lvm/
+
+
+
+
+fdisk -l
+parted /dev/xvdf
+mklabel gpt
+mkpart primary
+ext4
+Start? 1
+End? 1024G
+set 1 lvm on
+quit
+
+pvcreate /dev/xvdf1
+vgextend vg_linux /dev/xvdf1
+
+lvextend -l +100%FREE /dev/vg_linux/lv_linux
+
+(After display need to resize the lvm)
+
+resize2fs /dev/vg_linux/lv_linux
+
+{Note;- do not add fstab entry in this}
+
