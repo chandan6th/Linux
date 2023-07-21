@@ -1,0 +1,122 @@
+[ec2-user@ip-172-31-89-34 ~]$
+[ec2-user@ip-172-31-89-34 ~]$ sudo su -
+Last login: Tue Jul 18 05:19:12 UTC 2023 on pts/0
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           952M         87M        278M        564K        586M        729M
+Swap:            0B          0B          0B
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# lsblk
+NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0   8G  0 disk
+└─xvda1 202:1    0   8G  0 part /
+xvdf    202:80   0   8G  0 disk
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# fdisk -l
+Disk /dev/xvda: 8 GiB, 8589934592 bytes, 16777216 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: F916FCCA-6DEA-491D-8790-E077462B24D4
+
+Device       Start      End  Sectors Size Type
+/dev/xvda1    4096 16777182 16773087   8G Linux filesystem
+/dev/xvda128  2048     4095     2048   1M BIOS boot
+
+Partition table entries are not in disk order.
+
+
+Disk /dev/xvdf: 8 GiB, 8589934592 bytes, 16777216 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# parted /dev/xvdf
+GNU Parted 3.1
+Using /dev/xvdf
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+(parted) mklabel gpt
+(parted) mkpart primary
+File system type?  [ext2]? ext4
+Start? 1
+End? 8G
+(parted) set 1 lvm on
+(parted) quit
+Information: You may need to update /etc/fstab.
+
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# fdisk -l
+Disk /dev/xvda: 8 GiB, 8589934592 bytes, 16777216 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: F916FCCA-6DEA-491D-8790-E077462B24D4
+
+Device       Start      End  Sectors Size Type
+/dev/xvda1    4096 16777182 16773087   8G Linux filesystem
+/dev/xvda128  2048     4095     2048   1M BIOS boot
+
+Partition table entries are not in disk order.
+
+
+Disk /dev/xvdf: 8 GiB, 8589934592 bytes, 16777216 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: A65EC92E-067D-4F29-ABCA-6EB6A78625EF
+
+Device     Start      End  Sectors  Size Type
+/dev/xvdf1  2048 15624191 15622144  7.5G Linux LVM
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# mkswap /dev/xvdf1
+Setting up swapspace version 1, size = 7.5 GiB (7998533632 bytes)
+no label, UUID=97a9df43-4faf-4dba-b36c-120467a8e14e
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# swapon /dev/xvdf1
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# swapon -s
+Filename                                Type            Size    Used    Priority
+/dev/xvdf1                              partition       7811068 0       -2
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           952M        110M        202M        568K        639M        699M
+Swap:          7.4G          0B        7.4G
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# vi /etc/fstab      ( /dev/xvdf1       swap     swap    default  0   0 )
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# mount -a
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# lsblk
+NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0    8G  0 disk
+└─xvda1 202:1    0    8G  0 part /
+xvdf    202:80   0    8G  0 disk
+└─xvdf1 202:81   0  7.5G  0 part [SWAP]
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           952M        110M        198M        568K        643M        698M
+Swap:          7.4G          0B        7.4G
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]# swapon -s
+Filename                                Type            Size    Used    Priority
+/dev/xvdf1                              partition       7811068 0       -2
+[root@ip-172-31-89-34 ~]#
+[root@ip-172-31-89-34 ~]#
+
